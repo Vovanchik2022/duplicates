@@ -59,16 +59,13 @@ def show_duplicates(duplicates, folder1, folder2):
 
 
 def main():
-    # Ввод директорий
     folder1 = input("Введите директорию первой папки: ")
     folder2 = input(
         "Введите директорию второй папки: (или нажмите Enter для пропуска): ")
 
-    # Загрузка изображений
     images1 = load_images_from_folder(folder1)
     images2 = load_images_from_folder(folder2) if folder2 else []
 
-    # Поиск дубликатов
     if images2:
         combined_images = images1 + images2
     else:
@@ -76,11 +73,8 @@ def main():
 
     duplicates_hash = find_duplicates(combined_images)
 
-    # Вывод результатов
-    print("Duplicates found using hash:")
     print_duplicates(duplicates_hash)
 
-    # Визуализация дубликатов (если найдены)
     if duplicates_hash:
         show_duplicates(duplicates_hash, folder1, folder2)
 
