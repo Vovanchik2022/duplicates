@@ -1,7 +1,13 @@
 import os
+import logging
 from PIL import Image
 import imagehash
 import matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def load_images_from_folder(folder):
@@ -14,7 +20,7 @@ def load_images_from_folder(folder):
                 if img is not None:
                     images.append((filename, img))
             except (IOError, OSError) as e:
-                print(f"Error loading {filename}: {e}")
+                logging.error(f"Error loading {filename}: {e}")
     return images
 
 
@@ -63,20 +69,26 @@ def main():
     folder2 = input(
         "Введите директорию второй папки: (или нажмите Enter для пропуска): ")
 
-    images1 = load_images_from_folder(folder1)
-    images2 = load_images_from_folder(folder2) if folder2 else []
+    try:
+        with ThreadPoolExecutor() as executor:
+            images1_future = executor.submit(load_images_from_folder, folder1)
+            images2_future = executor.submit(
+                load_images_from_folder, folder2) if folder2 else None
 
-    if images2:
-        combined_images = images1 + images2
-    else:
-        combined_images = images1
+            images1 = images1_future.result()
+            images2 = images2_future.result() if images2_future else []
 
-    duplicates_hash = find_duplicates(combined_images)
+            combined_images = images1 + images2 if images2 else images1
 
-    print_duplicates(duplicates_hash)
+            duplicates_hash = find_duplicates(combined_images)
 
-    if duplicates_hash:
-        show_duplicates(duplicates_hash, folder1, folder2)
+            print_duplicates(duplicates_hash)
+
+            if duplicates_hash:
+                show_duplicates(duplicates_hash, folder1, folder2)
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
